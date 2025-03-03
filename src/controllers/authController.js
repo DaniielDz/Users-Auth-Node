@@ -62,8 +62,8 @@ export class AuthController {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict'
             })
-
-            res.json({ message: 'Login exitoso', token });
+            
+            res.json({ message: 'Login exitoso', user: email});
         } catch (error) {
             res.status(500).json({ message: 'Error en el servidor' });
         }

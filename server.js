@@ -13,7 +13,7 @@ const PORT = process.env.PORT ?? 3000
 app.disable('x-powered-by')
 app.use(express.json())
 app.use(cookieParser())
-app.use(cors({ credentials: true, origin: 'http://localhost:5500' }))
+app.use(cors({ credentials: true, origin: 'http://localhost:5173' }))
 
 app.use('/api/auth', authRoutes);
 
