@@ -1,0 +1,16 @@
+POST http://localhost:3000/api/auth/register HTTP/1.1
+Content-Type: application/json
+
+{ "email": "daniel@gmail.com", "password": "12" }
+
+###
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{ "email": "daniel@gmail.com", "password": "123456" }
+
+### 
+POST http://localhost:3000/api/auth/logout
+
+###
+GET http://localhost:3000/api/auth/protected
