@@ -22,10 +22,24 @@ export class AuthController {
 
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            await User.create(email, hashedPassword)
+            const newUser = await User.create(email, hashedPassword);
 
-            res.status(201).json({ message: 'Usuario registrado con éxito' })
+            const token = jwt.sign(
+                { id: newUser.id, email: newUser.email },
+                process.env.JWT_SECRET,
+                { expiresIn: "1h" }
+            );
+            
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict'
+            });
 
+            res.status(201).json({
+                message: 'Usuario registrado y autenticado con éxito',
+                user: newUser.email
+            });
         } catch (error) {
             res.status(500).json({ message: 'Error en el servidor', error })
         }
@@ -36,7 +50,7 @@ export class AuthController {
             const { email, password } = req.body
 
             const result = validateUser({ email, password })
-            
+
             if (!result.success) {
                 return res.status(400).json({ message: 'Datos inválidos', errors: result.error.errors })
             }
@@ -62,8 +76,8 @@ export class AuthController {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict'
             })
-            
-            res.json({ message: 'Login exitoso', user: email});
+
+            res.json({ message: 'Login exitoso', user: email });
         } catch (error) {
             res.status(500).json({ message: 'Error en el servidor' });
         }
