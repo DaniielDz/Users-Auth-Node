@@ -1,16 +1,16 @@
 import { pool } from '../config/db.js';
 
 export const User = {
-    async create (email, hashedPassword) {
+    async create (username, hashedPassword) {
         const [result] = await pool.execute(
-            'INSERT INTO users (email, password) VALUES (?, ?)',
-            [email, hashedPassword]
+            'INSERT INTO users (username, password_hash) VALUES (?, ?)',
+            [username, hashedPassword]
         );
         return result
     },
-    async findByEmail(email) {
+    async findByUserName(username) {
         const [rows] = await pool.execute(
-            'SELECT * FROM users WHERE email = ?', [email]
+            'SELECT * FROM users WHERE username = ?', [username]
         )
 
         return rows.length > 0 ? rows[0] : null

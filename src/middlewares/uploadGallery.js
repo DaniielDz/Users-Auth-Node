@@ -9,17 +9,18 @@ export const processGallery = async (req, res, next) => {
 
     try {
         const galleryUrls = await Promise.all(
-            req.body.gallery.map(async (base64Image) => {
-                const matches = base64Image.match(/^data:(.+);base64,(.+)$/)
-                if(!matches) throw new Error("Formato Base64 invlido");
-                
+            req.body.gallery.map(async (image) => {
+            const matches = image.match(/^data:(.+);base64,(.+)$/)
+            if (matches) {
                 const mimeType = matches[1]
                 const buffer = Buffer.from(matches[2], "base64")
-
                 return uploadToCloudinary(buffer, "gallery", mimeType)
+            } else {
+                return image
+            }
             })
         )
-        req.body.gallery = galleryUrls
+        req.body.gallery = galleryUrls        
         next()
     } catch (error) {
         res.status(500).json({ error: error.message });

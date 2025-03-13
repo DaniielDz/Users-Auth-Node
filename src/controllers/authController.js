@@ -6,26 +6,26 @@ import { validateUser } from "../utils/validateUser.js";
 export class AuthController {
     static async register(req, res) {
         try {
-            const { email, password } = req.body
+            const { username, password } = req.body
 
-            const result = validateUser({ email, password })
+            const result = validateUser({ username, password })
 
             if (!result.success) {
                 return res.status(400).json({ message: 'Datos inválidos', errors: result.error.errors })
             }
 
-            const existingUser = await User.findByEmail(email)
+            const existingUser = await User.findByUserName(username)
 
             if (existingUser) {
-                return res.status(400).json({ message: `El email ${email} ya está registrado` })
+                return res.status(400).json({ message: `El username ${username} ya está registrado` })
             }
 
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            const newUser = await User.create(email, hashedPassword);
+            const newUser = await User.create(username, hashedPassword);
 
             const token = jwt.sign(
-                { id: newUser.id, email: newUser.email },
+                { id: newUser.id, username: newUser.username },
                 process.env.JWT_SECRET,
                 { expiresIn: "1h" }
             );
@@ -38,7 +38,7 @@ export class AuthController {
 
             res.status(201).json({
                 message: 'Usuario registrado y autenticado con éxito',
-                user: newUser.email
+                user: newUser.username
             });
         } catch (error) {
             res.status(500).json({ message: 'Error en el servidor', error })
@@ -47,26 +47,27 @@ export class AuthController {
 
     static async login(req, res) {
         try {
-            const { email, password } = req.body
+            const { username, password } = req.body
 
-            const result = validateUser({ email, password })
+            const result = validateUser({ username, password })
 
             if (!result.success) {
                 return res.status(400).json({ message: 'Datos inválidos', errors: result.error.errors })
             }
 
-            const user = await User.findByEmail(email)
+            const user = await User.findByUserName(username)
             if (!user) {
                 return res.status(401).json({ message: 'Credenciales inválidas' });
             }
 
-            const isMatch = await bcrypt.compare(password, user.password)
+            const isMatch = await bcrypt.compare(password, user.password_hash)
+
             if (!isMatch) {
                 return res.status(401).json({ message: 'Credenciales inválidas' });
             }
 
             const token = jwt.sign(
-                { id: user.id, email: user.email },
+                { id: user.id, username: user.username },
                 process.env.JWT_SECRET,
                 { expiresIn: "1h" }
             )
@@ -77,7 +78,7 @@ export class AuthController {
                 sameSite: 'strict'
             })
 
-            res.json({ message: 'Login exitoso', user: email });
+            res.json({ message: 'Login exitoso', user: username });
         } catch (error) {
             res.status(500).json({ message: 'Error en el servidor' });
         }

@@ -1,27 +1,35 @@
 POST http://localhost:3000/api/auth/register HTTP/1.1
 Content-Type: application/json
 
-{ "email": "daniieldz@gmail.com", "password": "123456" }
+{ "username": "daniel@gmail.com", "password": "123456" }
 
 ###
 POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
-{ "email": "daniieldz@gmail.om", "password": "123456" }
+{ "username": "daniel@gmail.com", "password": "123456" }
 
 ### 
-POST    
+POST  http://localhost:3000/api/auth/logout
 
 ###
 GET http://localhost:3000/api/auth/check-auth
 
 ### 
-POST http://localhost:3000/api/post/
+POST http://localhost:3000/api/post?type=portfolio
 Content-Type: application/json
 
-{
-    
+{   "formData": {    "embed":"asdada",
+"path":"2D",
+"tags":["Naruto", "Uzumaki"],
+"text":"Holaa",
+"title":"Naruto" },
+                "gallery":[
+        "data:image/png;base64,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"
+        ]
 }
 
 ###
-GET http://localhost:3000/api/post/8
+GET http://localhost:3000/api/post?type=respacks
+###
+GET http://localhost:3000/api/post/10?type=respacks
