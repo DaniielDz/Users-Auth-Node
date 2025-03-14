@@ -140,26 +140,38 @@ export class Post {
         }
     }
 
-    static async getAllResPacks(page = 1, limit = 10, path = null) {
+    static async getAllResPacks(page = 1, limit = 10, path = null, title = null) {
         const pageNumber = Number(page);
         const limitNumber = Number(limit);
         const offset = (pageNumber - 1) * limitNumber;
 
         // Construir la consulta SQL dinámicamente
         let query = `
-                SELECT 
-                    ResPacksPosts.*, 
-                    GROUP_CONCAT(PostImages.image_url ORDER BY PostImages.image_order SEPARATOR ',') AS images,
-                    GROUP_CONCAT(DISTINCT tags.name SEPARATOR ',') AS tags
-                FROM ResPacksPosts
-                LEFT JOIN PostImages ON ResPacksPosts.id = PostImages.respacks_post_id
-                LEFT JOIN ResPacksPost_tags ON ResPacksPosts.id = ResPacksPost_tags.post_id
-                LEFT JOIN tags ON ResPacksPost_tags.tag_id = tags.id
+            SELECT 
+                ResPacksPosts.*, 
+                GROUP_CONCAT(PostImages.image_url ORDER BY PostImages.image_order SEPARATOR ',') AS images,
+                GROUP_CONCAT(DISTINCT tags.name SEPARATOR ',') AS tags
+            FROM ResPacksPosts
+            LEFT JOIN PostImages ON ResPacksPosts.id = PostImages.respacks_post_id
+            LEFT JOIN ResPacksPost_tags ON ResPacksPosts.id = ResPacksPost_tags.post_id
+            LEFT JOIN tags ON ResPacksPost_tags.tag_id = tags.id
         `;
 
-        // Agregar el filtro por path si está definido
-        if (path) {
-            query += ` WHERE ResPacksPosts.path = ? `;
+        // Parámetros para la consulta
+        const queryParams = [];
+
+        // Agregar filtros dinámicos
+        if (path || title) {
+            query += ` WHERE `;
+            if (path) {
+                query += ` ResPacksPosts.path = ? `;
+                queryParams.push(path);
+            }
+            if (title) {
+                if (path) query += ` AND `; // Agregar AND si ya hay un filtro de path
+                query += ` ResPacksPosts.title LIKE ? `;
+                queryParams.push(`%${title}%`); // Búsqueda parcial con LIKE
+            }
         }
 
         query += `
@@ -167,32 +179,38 @@ export class Post {
             LIMIT ? OFFSET ?
         `;
 
-        // Parámetros para la consulta
-        const queryParams = [];
-        if (path) {
-            queryParams.push(path);
-        }
+        // Agregar límite y offset a los parámetros
         queryParams.push(limitNumber, offset);
 
         // Ejecutar la consulta para obtener los posts
         const [posts] = await pool.query(query, queryParams);
 
-        // Consulta para el total de posts (con o sin filtro por path)
+        // Consulta para el total de posts (con o sin filtro por path/title)
         let totalQuery = "SELECT COUNT(*) as total FROM ResPacksPosts";
-        if (path) {
-            totalQuery += " WHERE path = ?";
+        const totalParams = [];
+        if (path || title) {
+            totalQuery += ` WHERE `;
+            if (path) {
+                totalQuery += ` path = ? `;
+                totalParams.push(path);
+            }
+            if (title) {
+                if (path) totalQuery += ` AND `; // Agregar AND si ya hay un filtro de path
+                totalQuery += ` title LIKE ? `;
+                totalParams.push(`%${title}%`); // Búsqueda parcial con LIKE
+            }
         }
 
-        const [total] = await pool.query(totalQuery, path ? [path] : []);
+        const [total] = await pool.query(totalQuery, totalParams);
         const totalPosts = total[0].total;
         const totalPages = Math.ceil(totalPosts / limitNumber);
 
+        // Procesar las imágenes y etiquetas
         const postsWithImagesAndTags = posts.map((post) => ({
             ...post,
             images: post.images ? post.images.split(",") : [],
             tags: post.tags ? post.tags.split(",") : [],
         }));
-
 
         if (posts.length === 0) {
             return {
@@ -213,7 +231,7 @@ export class Post {
         };
     }
 
-    static async getAllPortfolio(page = 1, limit = 10, path = null) {
+    static async getAllPortfolio(page = 1, limit = 10, path = null, title = null) {
         const pageNumber = Number(page);
         const limitNumber = Number(limit);
         const offset = (pageNumber - 1) * limitNumber;
@@ -230,9 +248,21 @@ export class Post {
             LEFT JOIN tags ON PortfolioPost_tags.tag_id = tags.id
         `;
 
-        // Agregar el filtro por path si está definido
-        if (path) {
-            query += ` WHERE PortfolioPosts.path = ? `;
+        // Parámetros para la consulta
+        const queryParams = [];
+
+        // Agregar filtros dinámicos
+        if (path || title) {
+            query += ` WHERE `;
+            if (path) {
+                query += ` PortfolioPosts.path = ? `;
+                queryParams.push(path);
+            }
+            if (title) {
+                if (path) query += ` AND `; // Agregar AND si ya hay un filtro de path
+                query += ` PortfolioPosts.title LIKE ? `;
+                queryParams.push(`%${title}%`); // Búsqueda parcial con LIKE
+            }
         }
 
         query += `
@@ -240,26 +270,33 @@ export class Post {
             LIMIT ? OFFSET ?
         `;
 
-        // Parámetros para la consulta
-        const queryParams = [];
-        if (path) {
-            queryParams.push(path);
-        }
+        // Agregar límite y offset a los parámetros
         queryParams.push(limitNumber, offset);
 
         // Ejecutar la consulta para obtener los posts
         const [posts] = await pool.query(query, queryParams);
 
-        // Consulta para el total de posts (con o sin filtro por path)
+        // Consulta para el total de posts (con o sin filtro por path/title)
         let totalQuery = "SELECT COUNT(*) as total FROM PortfolioPosts";
-        if (path) {
-            totalQuery += " WHERE path = ?";
+        const totalParams = [];
+        if (path || title) {
+            totalQuery += ` WHERE `;
+            if (path) {
+                totalQuery += ` path = ? `;
+                totalParams.push(path);
+            }
+            if (title) {
+                if (path) totalQuery += ` AND `; // Agregar AND si ya hay un filtro de path
+                totalQuery += ` title LIKE ? `;
+                totalParams.push(`%${title}%`); // Búsqueda parcial con LIKE
+            }
         }
 
-        const [total] = await pool.query(totalQuery, path ? [path] : []);
+        const [total] = await pool.query(totalQuery, totalParams);
         const totalPosts = total[0].total;
         const totalPages = Math.ceil(totalPosts / limitNumber);
 
+        // Procesar las imágenes y etiquetas
         const postsWithImagesAndTags = posts.map((post) => ({
             ...post,
             images: post.images ? post.images.split(",") : [],

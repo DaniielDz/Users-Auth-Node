@@ -71,16 +71,14 @@ export class PostController {
         try {
             const page = parseInt(req.query.page) || 1; // Página actual (default 1)
             const limit = parseInt(req.query.limit) || 10; // Items por página (default 10)
-            const path = req.query.path; // Filtro por path (opcional)
-            const type = req.query.type; // Tipo de post: 'respacks' o 'portfolio'
+            const { path, type, title } = req.query;
 
             let result;
 
-            // Determinar qué método llamar según el tipo de post
             if (type === 'respacks') {
-                result = await Post.getAllResPacks(page, limit, path);
+                result = await Post.getAllResPacks(page, limit, path, title);
             } else if (type === 'portfolio') {
-                result = await Post.getAllPortfolio(page, limit, path);
+                result = await Post.getAllPortfolio(page, limit, path, title);
             } else {
                 return res.status(400).json({
                     message: "Tipo de post no válido. Use 'respacks' o 'portfolio'.",
@@ -135,7 +133,7 @@ export class PostController {
             const {
                 updatedFields,
                 newTags,
-                gallery // Array de imágenes nuevas
+                gallery
             } = req.body;            
 
             const result = await Post.update(id, type, updatedFields, gallery, newTags);
