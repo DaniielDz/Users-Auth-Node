@@ -19,7 +19,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser())
 app.use(cors({ 
   credentials: true, 
-  origin: ['http://localhost:5173', 'https://craftedia.netlify.app'] 
+  origin: ['http://localhost:5173', 'https://craftedia.netlify.app', 'https://craftedia.com'] 
 }))
 
 app.use('/api/auth', authRoutes);
